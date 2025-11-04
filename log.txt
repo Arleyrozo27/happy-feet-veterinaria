@@ -1,0 +1,28 @@
+[ERROR] Wed Oct 29 15:26:17 COT 2025 - Error al guardar dueño: 98765432 - Duplicate entry '98765432' for key 'duenos.documento_identidad'
+[ERROR] Wed Oct 29 15:26:47 COT 2025 - Error al guardar dueño: 98765432 - Duplicate entry '98765432' for key 'duenos.documento_identidad'
+[ERROR] Wed Oct 29 15:27:40 COT 2025 - Error al guardar dueño: 98765432 - Duplicate entry '98765432' for key 'duenos.documento_identidad'
+[ERROR] Wed Oct 29 15:28:14 COT 2025 - Error al guardar dueño: 9832 - Duplicate entry 'maria@email.com' for key 'duenos.email'
+[INFO] Wed Oct 29 15:49:41 COT 2025 - Sistema Happy Feet iniciado
+[INFO] Wed Oct 29 15:50:42 COT 2025 - Nuevo dueño registrado: Arley - ID: 7
+[INFO] Wed Oct 29 15:52:54 COT 2025 - Sistema Happy Feet iniciado
+[INFO] Wed Oct 29 15:53:31 COT 2025 - Nueva mascota registrada: Canela - Dueño ID: 7
+[INFO] Wed Oct 29 15:54:19 COT 2025 - Sistema Happy Feet finalizado
+[INFO] Wed Oct 29 16:29:22 COT 2025 - Sistema Happy Feet iniciado
+[INFO] Wed Oct 29 16:30:27 COT 2025 - Sistema Happy Feet finalizado
+[INFO] Wed Oct 29 16:31:39 COT 2025 - Sistema Happy Feet iniciado
+[INFO] Wed Oct 29 16:32:14 COT 2025 - Sistema Happy Feet iniciado
+[INFO] Wed Oct 29 16:32:33 COT 2025 - Sistema Happy Feet finalizado
+[INFO] Thu Oct 30 09:46:04 COT 2025 - Sistema Happy Feet iniciado
+[INFO] Thu Oct 30 09:49:00 COT 2025 - Sistema Happy Feet iniciado
+[INFO] Thu Oct 30 10:12:51 COT 2025 - Sistema Happy Feet iniciado
+[INFO] Thu Oct 30 14:14:53 COT 2025 - Sistema Happy Feet iniciado
+[INFO] Thu Oct 30 14:15:17 COT 2025 - Sistema Happy Feet finalizado
+[INFO] Thu Oct 30 14:22:57 COT 2025 - Sistema Happy Feet iniciado
+[INFO] Thu Oct 30 14:23:52 COT 2025 - Sistema Happy Feet iniciado
+[INFO] Thu Oct 30 14:24:28 COT 2025 - Sistema Happy Feet iniciado
+[INFO] Thu Oct 30 14:41:32 COT 2025 - Sistema Happy Feet iniciado
+[INFO] Thu Oct 30 14:47:14 COT 2025 - Sistema Happy Feet iniciado
+[INFO] Thu Oct 30 15:47:00 COT 2025 - Sistema Happy Feet iniciado
+[INFO] Fri Oct 31 14:19:00 COT 2025 - Sistema Happy Feet iniciado
+[INFO] Fri Oct 31 14:20:45 COT 2025 - Nuevo producto registrado: Paracetamol - ID: 1
+[INFO] Fri Oct 31 14:21:25 COT 2025 - Stock descontado - Producto: Paracetamol - Cantidad: 50
