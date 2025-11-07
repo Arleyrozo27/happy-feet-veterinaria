@@ -29,4 +29,4 @@ Sistema integral de gestión para clínica veterinaria desarrollado en Java con 
 
 1. Clonar repositorio:
 ```bash
-git clone https://github.com/tu-usuario/happy-feet-veterinaria.git
+git clone https://github.com/Arleyrozo27/happy-feet-veterinaria.git
