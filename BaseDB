@@ -1,0 +1,724 @@
+DROP DATABASE IF EXISTS happy_feet_veterinaria;
+
+CREATE DATABASE happy_feet_veterinaria CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+USE happy_feet_veterinaria;
+
+
+
+-- =========== TABLAS DE CONSULTA (LOOKUP TABLES) ===========
+
+
+
+CREATE TABLE especies (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100) UNIQUE NOT NULL,
+  descripcion TEXT,
+  INDEX idx_nombre (nombre)
+);
+
+
+
+CREATE TABLE razas (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  especie_id INT NOT NULL,
+  nombre VARCHAR(100) NOT NULL,
+  caracteristicas TEXT,
+  FOREIGN KEY (especie_id) REFERENCES especies(id) ON DELETE RESTRICT,
+  UNIQUE KEY uk_raza_especie (especie_id, nombre),
+  INDEX idx_especie (especie_id)
+);
+
+
+
+CREATE TABLE producto_tipos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100) UNIQUE NOT NULL,
+  descripcion TEXT,
+  INDEX idx_nombre (nombre)
+);
+
+
+
+CREATE TABLE evento_tipos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100) UNIQUE NOT NULL,
+  descripcion TEXT,
+  INDEX idx_nombre (nombre)
+);
+
+
+
+CREATE TABLE cita_estados (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(50) UNIQUE NOT NULL,
+  descripcion TEXT,
+  INDEX idx_nombre (nombre)
+);
+
+
+
+
+
+-- =========== MÓDULO 1: GESTIÓN DE PACIENTES ===========
+
+
+
+CREATE TABLE duenos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre_completo VARCHAR(255) NOT NULL,
+  documento_identidad VARCHAR(20) UNIQUE NOT NULL,
+  direccion VARCHAR(255),
+  telefono VARCHAR(20),
+  email VARCHAR(100) UNIQUE NOT NULL,
+  contacto_emergencia VARCHAR(255),
+  fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
+  activo BOOLEAN DEFAULT TRUE,
+  INDEX idx_documento (documento_identidad),
+  INDEX idx_email (email),
+  INDEX idx_activo (activo)
+);
+
+
+CREATE TABLE mascotas (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  dueno_id INT NOT NULL,
+  nombre VARCHAR(100) NOT NULL,
+  raza_id INT NOT NULL,
+  fecha_nacimiento DATE,
+  sexo ENUM('Macho', 'Hembra') NOT NULL,
+  peso_actual DECIMAL(5,2),
+  microchip VARCHAR(50) UNIQUE,
+  tatuaje VARCHAR(50),
+  url_foto VARCHAR(255),
+  alergias TEXT,
+  condiciones_preexistentes TEXT,
+  fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
+  activo BOOLEAN DEFAULT TRUE,
+  FOREIGN KEY (dueno_id) REFERENCES duenos(id) ON DELETE RESTRICT,
+  FOREIGN KEY (raza_id) REFERENCES razas(id) ON DELETE RESTRICT,
+  INDEX idx_dueno (dueno_id),
+  INDEX idx_nombre (nombre),
+  INDEX idx_microchip (microchip),
+  INDEX idx_activo (activo)
+);
+
+
+-- =========== MÓDULO 2: SERVICIOS MÉDICOS Y PERSONAL ===========
+
+
+CREATE TABLE veterinarios (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre_completo VARCHAR(255) NOT NULL,
+  documento_identidad VARCHAR(20) UNIQUE NOT NULL,
+  licencia_profesional VARCHAR(50) UNIQUE NOT NULL,
+  especialidad VARCHAR(100),
+  telefono VARCHAR(20),
+  email VARCHAR(100) UNIQUE,
+  fecha_contratacion DATE,
+  activo BOOLEAN DEFAULT TRUE,
+  INDEX idx_documento (documento_identidad),
+  INDEX idx_licencia (licencia_profesional),
+  INDEX idx_activo (activo)
+);
+
+CREATE TABLE citas (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  mascota_id INT NOT NULL,
+  veterinario_id INT,
+  fecha_hora DATETIME NOT NULL,
+  motivo VARCHAR(500),
+  estado_id INT NOT NULL,
+  observaciones TEXT,
+  fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (mascota_id) REFERENCES mascotas(id) ON DELETE CASCADE,
+  FOREIGN KEY (veterinario_id) REFERENCES veterinarios(id) ON DELETE SET NULL,
+  FOREIGN KEY (estado_id) REFERENCES cita_estados(id) ON DELETE RESTRICT,
+  INDEX idx_fecha (fecha_hora),
+  INDEX idx_mascota (mascota_id),
+  INDEX idx_veterinario (veterinario_id),
+  INDEX idx_estado (estado_id)
+);
+
+CREATE TABLE consultas_medicas (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  mascota_id INT NOT NULL,
+  veterinario_id INT NOT NULL,
+  cita_id INT,
+  fecha_hora DATETIME NOT NULL,
+  motivo VARCHAR(500) NOT NULL,
+  sintomas TEXT,
+  diagnostico TEXT,
+  recomendaciones TEXT,
+  observaciones TEXT,
+  peso_registrado DECIMAL(5,2),
+  temperatura DECIMAL(4,2),
+  FOREIGN KEY (mascota_id) REFERENCES mascotas(id) ON DELETE CASCADE,
+  FOREIGN KEY (veterinario_id) REFERENCES veterinarios(id) ON DELETE RESTRICT,
+  FOREIGN KEY (cita_id) REFERENCES citas(id) ON DELETE SET NULL,
+  INDEX idx_mascota (mascota_id),
+  INDEX idx_veterinario (veterinario_id),
+  INDEX idx_fecha (fecha_hora)
+);
+
+CREATE TABLE procedimientos_especiales (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  mascota_id INT NOT NULL,
+  veterinario_id INT NOT NULL,
+  tipo_procedimiento VARCHAR(100) NOT NULL,
+  nombre_procedimiento VARCHAR(255) NOT NULL,
+  fecha_hora DATETIME NOT NULL,
+  duracion_estimada_minutos INT,
+  informacion_preoperatoria TEXT,
+  detalle_procedimiento TEXT NOT NULL,
+  complicaciones TEXT,
+  seguimiento_postoperatorio TEXT,
+  proximo_control DATE,
+  estado ENUM('Programado', 'En Proceso', 'Finalizado', 'Cancelado') NOT NULL DEFAULT 'Programado',
+  costo_procedimiento DECIMAL(10, 2),
+  FOREIGN KEY (mascota_id) REFERENCES mascotas(id) ON DELETE CASCADE,
+  FOREIGN KEY (veterinario_id) REFERENCES veterinarios(id) ON DELETE RESTRICT,
+  INDEX idx_mascota (mascota_id),
+  INDEX idx_veterinario (veterinario_id),
+  INDEX idx_fecha (fecha_hora),
+  INDEX idx_estado (estado)
+);
+
+CREATE TABLE historial_medico (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  mascota_id INT NOT NULL,
+  fecha_evento DATE NOT NULL,
+  evento_tipo_id INT NOT NULL,
+  descripcion TEXT NOT NULL,
+  diagnostico TEXT,
+  tratamiento_recomendado TEXT,
+  veterinario_id INT,
+  consulta_id INT,
+  procedimiento_id INT,
+  FOREIGN KEY (mascota_id) REFERENCES mascotas(id) ON DELETE CASCADE,
+  FOREIGN KEY (evento_tipo_id) REFERENCES evento_tipos(id) ON DELETE RESTRICT,
+  FOREIGN KEY (veterinario_id) REFERENCES veterinarios(id) ON DELETE SET NULL,
+  FOREIGN KEY (consulta_id) REFERENCES consultas_medicas(id) ON DELETE SET NULL,
+  FOREIGN KEY (procedimiento_id) REFERENCES procedimientos_especiales(id) ON DELETE SET NULL,
+  INDEX idx_mascota (mascota_id),
+  INDEX idx_fecha (fecha_evento),
+  INDEX idx_tipo (evento_tipo_id)
+);
+
+-- =========== MÓDULO 3: INVENTARIO Y FARMACIA ===========
+
+CREATE TABLE proveedores (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre_empresa VARCHAR(255) NOT NULL,
+  contacto VARCHAR(255),
+  telefono VARCHAR(20),
+  email VARCHAR(100),
+  direccion VARCHAR(255),
+  sitio_web VARCHAR(255),
+  activo BOOLEAN DEFAULT TRUE,
+  fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_nombre (nombre_empresa),
+  INDEX idx_activo (activo)
+);
+
+CREATE TABLE inventario (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre_producto VARCHAR(255) NOT NULL,
+  producto_tipo_id INT NOT NULL,
+  descripcion TEXT,
+  fabricante VARCHAR(100),
+  proveedor_id INT,
+  lote VARCHAR(50),
+  cantidad_stock INT NOT NULL DEFAULT 0,
+  stock_minimo INT NOT NULL DEFAULT 0,
+  unidad_medida VARCHAR(50) DEFAULT 'unidad',
+  fecha_vencimiento DATE,
+  precio_compra DECIMAL(10, 2),
+  precio_venta DECIMAL(10, 2) NOT NULL,
+  requiere_receta BOOLEAN DEFAULT FALSE,
+  activo BOOLEAN DEFAULT TRUE,
+  fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (producto_tipo_id) REFERENCES producto_tipos(id) ON DELETE RESTRICT,
+  FOREIGN KEY (proveedor_id) REFERENCES proveedores(id) ON DELETE SET NULL,
+  INDEX idx_nombre (nombre_producto),
+  INDEX idx_tipo (producto_tipo_id),
+  INDEX idx_stock (cantidad_stock),
+  INDEX idx_vencimiento (fecha_vencimiento),
+  INDEX idx_proveedor (proveedor_id),
+  INDEX idx_activo (activo),
+  CONSTRAINT chk_stock_positivo CHECK (cantidad_stock >= 0),
+  CONSTRAINT chk_stock_minimo CHECK (stock_minimo >= 0)
+);
+
+CREATE TABLE prescripciones (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  consulta_id INT,
+  procedimiento_id INT,
+  producto_id INT NOT NULL,
+  cantidad INT NOT NULL,
+  dosis VARCHAR(100),
+  frecuencia VARCHAR(100),
+  duracion_dias INT,
+  instrucciones TEXT,
+  fecha_prescripcion DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (consulta_id) REFERENCES consultas_medicas(id) ON DELETE CASCADE,
+  FOREIGN KEY (procedimiento_id) REFERENCES procedimientos_especiales(id) ON DELETE CASCADE,
+  FOREIGN KEY (producto_id) REFERENCES inventario(id) ON DELETE RESTRICT,
+  INDEX idx_consulta (consulta_id),
+  INDEX idx_procedimiento (procedimiento_id),
+  INDEX idx_producto (producto_id),
+  INDEX idx_fecha (fecha_prescripcion),
+  CONSTRAINT chk_cantidad_positiva CHECK (cantidad > 0),
+  CONSTRAINT chk_tiene_referencia CHECK (consulta_id IS NOT NULL OR procedimiento_id IS NOT NULL)
+);
+
+CREATE TABLE insumos_procedimientos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  procedimiento_id INT NOT NULL,
+  producto_id INT NOT NULL,
+  cantidad_usada INT NOT NULL,
+  observaciones VARCHAR(255),
+  FOREIGN KEY (procedimiento_id) REFERENCES procedimientos_especiales(id) ON DELETE CASCADE,
+  FOREIGN KEY (producto_id) REFERENCES inventario(id) ON DELETE RESTRICT,
+  INDEX idx_procedimiento (procedimiento_id),
+  INDEX idx_producto (producto_id),
+  CONSTRAINT chk_cantidad_usada_positiva CHECK (cantidad_usada > 0)
+);
+
+CREATE TABLE movimientos_inventario (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  producto_id INT NOT NULL,
+  tipo_movimiento ENUM('Entrada', 'Salida', 'Ajuste', 'Vencimiento') NOT NULL,
+  cantidad INT NOT NULL,
+  stock_anterior INT NOT NULL,
+  stock_nuevo INT NOT NULL,
+  motivo VARCHAR(255),
+  referencia_consulta_id INT,
+  referencia_procedimiento_id INT,
+  usuario VARCHAR(100),
+  fecha_movimiento DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (producto_id) REFERENCES inventario(id) ON DELETE CASCADE,
+  FOREIGN KEY (referencia_consulta_id) REFERENCES consultas_medicas(id) ON DELETE SET NULL,
+  FOREIGN KEY (referencia_procedimiento_id) REFERENCES procedimientos_especiales(id) ON DELETE SET NULL,
+  INDEX idx_producto (producto_id),
+  INDEX idx_fecha (fecha_movimiento),
+  INDEX idx_tipo (tipo_movimiento)
+);
+
+-- =========== MÓDULO 4: FACTURACIÓN Y REPORTES ===========
+
+CREATE TABLE servicios (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(255) NOT NULL,
+  descripcion TEXT,
+  categoria VARCHAR(100),
+  precio_base DECIMAL(10, 2) NOT NULL,
+  duracion_estimada_minutos INT,
+  activo BOOLEAN DEFAULT TRUE,
+  INDEX idx_nombre (nombre),
+  INDEX idx_categoria (categoria),
+  INDEX idx_activo (activo),
+  CONSTRAINT chk_precio_positivo CHECK (precio_base >= 0)
+);
+
+CREATE TABLE facturas (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  dueno_id INT NOT NULL,
+  numero_factura VARCHAR(50) UNIQUE NOT NULL,
+  fecha_emision DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  subtotal DECIMAL(10, 2) NOT NULL,
+  impuesto DECIMAL(10, 2) NOT NULL DEFAULT 0,
+  descuento DECIMAL(10, 2) NOT NULL DEFAULT 0,
+  total DECIMAL(10, 2) NOT NULL,
+  metodo_pago ENUM('Efectivo', 'Tarjeta', 'Transferencia', 'Mixto'),
+  estado ENUM('Pendiente', 'Pagada', 'Anulada') DEFAULT 'Pendiente',
+  observaciones TEXT,
+  FOREIGN KEY (dueno_id) REFERENCES duenos(id) ON DELETE RESTRICT,
+  INDEX idx_dueno (dueno_id),
+  INDEX idx_fecha (fecha_emision),
+  INDEX idx_numero (numero_factura),
+  INDEX idx_estado (estado),
+  CONSTRAINT chk_subtotal_positivo CHECK (subtotal >= 0),
+  CONSTRAINT chk_total_positivo CHECK (total >= 0)
+);
+
+CREATE TABLE items_factura (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  factura_id INT NOT NULL,
+  tipo_item ENUM('Producto', 'Servicio') NOT NULL,
+  producto_id INT,
+  servicio_id INT,
+  servicio_descripcion VARCHAR(255),
+  cantidad INT NOT NULL,
+  precio_unitario DECIMAL(10, 2) NOT NULL,
+  subtotal DECIMAL(10, 2) NOT NULL,
+  FOREIGN KEY (factura_id) REFERENCES facturas(id) ON DELETE CASCADE,
+  FOREIGN KEY (producto_id) REFERENCES inventario(id) ON DELETE RESTRICT,
+  FOREIGN KEY (servicio_id) REFERENCES servicios(id) ON DELETE RESTRICT,
+  INDEX idx_factura (factura_id),
+  INDEX idx_producto (producto_id),
+  INDEX idx_servicio (servicio_id),
+  CONSTRAINT chk_cantidad_item_positiva CHECK (cantidad > 0),
+  CONSTRAINT chk_precio_unitario_positivo CHECK (precio_unitario >= 0),
+  CONSTRAINT chk_tipo_item_valido CHECK (
+    (tipo_item = 'Producto' AND producto_id IS NOT NULL AND servicio_id IS NULL) OR
+    (tipo_item = 'Servicio' AND servicio_id IS NOT NULL AND producto_id IS NULL)
+  )
+);
+
+-- =========== MÓDULO 5: ACTIVIDADES ESPECIALES ===========
+
+-- --------- Días de Adopción ---------
+
+CREATE TABLE mascotas_adopcion (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  mascota_id INT NOT NULL,
+  fecha_ingreso DATE NOT NULL,
+  motivo_ingreso TEXT,
+  estado ENUM('Disponible', 'En Proceso', 'Adoptada', 'Retirada') NOT NULL DEFAULT 'Disponible',
+  historia TEXT,
+  temperamento VARCHAR(255),
+  necesidades_especiales TEXT,
+  foto_adicional_url VARCHAR(255),
+  FOREIGN KEY (mascota_id) REFERENCES mascotas(id) ON DELETE CASCADE,
+  INDEX idx_mascota (mascota_id),
+  INDEX idx_estado (estado),
+  INDEX idx_fecha_ingreso (fecha_ingreso)
+);
+
+CREATE TABLE adopciones (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  mascota_adopcion_id INT NOT NULL,
+  dueno_id INT NOT NULL,
+  fecha_adopcion DATE NOT NULL,
+  contrato_texto TEXT,
+  condiciones_especiales TEXT,
+  seguimiento_requerido BOOLEAN DEFAULT TRUE,
+  fecha_primer_seguimiento DATE,
+  FOREIGN KEY (mascota_adopcion_id) REFERENCES mascotas_adopcion(id) ON DELETE RESTRICT,
+  FOREIGN KEY (dueno_id) REFERENCES duenos(id) ON DELETE RESTRICT,
+  INDEX idx_mascota_adopcion (mascota_adopcion_id),
+  INDEX idx_dueno (dueno_id),
+  INDEX idx_fecha (fecha_adopcion)
+);
+
+-- --------- Jornadas de Vacunación ---------
+
+CREATE TABLE jornadas_vacunacion (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(255) NOT NULL,
+  fecha DATE NOT NULL,
+  hora_inicio TIME,
+  hora_fin TIME,
+  ubicacion VARCHAR(255),
+  descripcion TEXT,
+  capacidad_maxima INT,
+  estado ENUM('Planificada', 'En Curso', 'Finalizada', 'Cancelada') DEFAULT 'Planificada',
+  INDEX idx_fecha (fecha),
+  INDEX idx_estado (estado)
+);
+
+CREATE TABLE registro_jornada_vacunacion (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  jornada_id INT NOT NULL,
+  mascota_id INT NOT NULL,
+  dueno_id INT NOT NULL,
+  vacuna_id INT NOT NULL,
+  veterinario_id INT,
+  fecha_hora DATETIME NOT NULL,
+  lote_vacuna VARCHAR(50),
+  proxima_dosis DATE,
+  observaciones TEXT,
+  FOREIGN KEY (jornada_id) REFERENCES jornadas_vacunacion(id) ON DELETE CASCADE,
+  FOREIGN KEY (mascota_id) REFERENCES mascotas(id) ON DELETE CASCADE,
+  FOREIGN KEY (dueno_id) REFERENCES duenos(id) ON DELETE CASCADE,
+  FOREIGN KEY (vacuna_id) REFERENCES inventario(id) ON DELETE RESTRICT,
+  FOREIGN KEY (veterinario_id) REFERENCES veterinarios(id) ON DELETE SET NULL,
+  INDEX idx_jornada (jornada_id),
+  INDEX idx_mascota (mascota_id),
+  INDEX idx_dueno (dueno_id),
+  INDEX idx_fecha (fecha_hora)
+);
+
+-- --------- Club de Mascotas Frecuentes ---------
+
+CREATE TABLE club_mascotas (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  dueno_id INT NOT NULL UNIQUE,
+  puntos_acumulados INT DEFAULT 0,
+  puntos_canjeados INT DEFAULT 0,
+  puntos_disponibles INT DEFAULT 0,
+  nivel VARCHAR(50) DEFAULT 'Bronce',
+  fecha_inscripcion DATE NOT NULL,
+  fecha_ultima_actualizacion DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  activo BOOLEAN DEFAULT TRUE,
+  FOREIGN KEY (dueno_id) REFERENCES duenos(id) ON DELETE CASCADE,
+  INDEX idx_dueno (dueno_id),
+  INDEX idx_nivel (nivel),
+  INDEX idx_puntos (puntos_disponibles),
+  INDEX idx_activo (activo),
+  CONSTRAINT chk_puntos_no_negativos CHECK (puntos_acumulados >= 0 AND puntos_canjeados >= 0 AND puntos_disponibles >= 0)
+);
+
+CREATE TABLE transacciones_puntos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  club_mascotas_id INT NOT NULL,
+  factura_id INT,
+  puntos INT NOT NULL,
+  tipo ENUM('Ganados', 'Canjeados', 'Expirados', 'Ajuste') NOT NULL,
+  fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  descripcion VARCHAR(255),
+  saldo_anterior INT NOT NULL,
+  saldo_nuevo INT NOT NULL,
+  FOREIGN KEY (club_mascotas_id) REFERENCES club_mascotas(id) ON DELETE CASCADE,
+  FOREIGN KEY (factura_id) REFERENCES facturas(id) ON DELETE SET NULL,
+  INDEX idx_club (club_mascotas_id),
+  INDEX idx_factura (factura_id),
+  INDEX idx_fecha (fecha),
+  INDEX idx_tipo (tipo)
+);
+
+CREATE TABLE beneficios_club (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(255) NOT NULL,
+  descripcion TEXT,
+  nivel_requerido VARCHAR(50) NOT NULL,
+  puntos_necesarios INT NOT NULL,
+  tipo_beneficio ENUM('Descuento', 'Servicio Gratis', 'Producto Gratis', 'Puntos Extra') NOT NULL,
+  valor_beneficio DECIMAL(10, 2),
+  activo BOOLEAN DEFAULT TRUE,
+  INDEX idx_nivel (nivel_requerido),
+  INDEX idx_puntos (puntos_necesarios),
+  INDEX idx_activo (activo),
+  CONSTRAINT chk_puntos_beneficio_positivo CHECK (puntos_necesarios > 0)
+);
+
+
+CREATE TABLE canjes_beneficios (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  club_mascotas_id INT NOT NULL,
+  beneficio_id INT NOT NULL,
+  fecha_canje DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  puntos_canjeados INT NOT NULL,
+  estado ENUM('Pendiente', 'Aplicado', 'Expirado') DEFAULT 'Pendiente',
+  fecha_expiracion DATE,
+  factura_id INT,
+  FOREIGN KEY (club_mascotas_id) REFERENCES club_mascotas(id) ON DELETE CASCADE,
+  FOREIGN KEY (beneficio_id) REFERENCES beneficios_club(id) ON DELETE RESTRICT,
+  FOREIGN KEY (factura_id) REFERENCES facturas(id) ON DELETE SET NULL,
+  INDEX idx_club (club_mascotas_id),
+  INDEX idx_beneficio (beneficio_id),
+  INDEX idx_fecha (fecha_canje),
+  INDEX idx_estado (estado)
+);
+
+-- 1. TABLA PARA CONSULTAS MÉDICAS (Ejercicio 1)
+CREATE TABLE IF NOT EXISTS consultas_medicas (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    mascota_id INT NOT NULL,
+    veterinario_id INT,
+    fecha_hora DATETIME NOT NULL,
+    peso_registrado DECIMAL(5,2),
+    diagnostico TEXT,
+    tratamiento TEXT,
+    observaciones TEXT,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (mascota_id) REFERENCES mascotas(id) ON DELETE CASCADE,
+    FOREIGN KEY (veterinario_id) REFERENCES veterinarios(id) ON DELETE SET NULL
+);
+
+-- 2. TABLA PARA ADOPCIONES (Ejercicio 3)
+CREATE TABLE IF NOT EXISTS adopciones (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    mascota_id INT NOT NULL,
+    dueño_id INT NOT NULL,
+    fecha_adopcion DATE NOT NULL,
+    contrato_texto TEXT,
+    estado ENUM('Pendiente', 'Completada', 'Cancelada') DEFAULT 'Pendiente',
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (mascota_id) REFERENCES mascotas(id) ON DELETE CASCADE,
+    FOREIGN KEY (dueño_id) REFERENCES duenos(id) ON DELETE CASCADE
+);
+
+-- 3. TABLA PARA PROCEDIMIENTOS ESPECIALES (Ejercicio 4)
+CREATE TABLE IF NOT EXISTS procedimientos_especiales (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    mascota_id INT NOT NULL,
+    veterinario_id INT NOT NULL,
+    tipo_procedimiento VARCHAR(100) NOT NULL,
+    descripcion TEXT,
+    fecha_procedimiento DATETIME NOT NULL,
+    estado ENUM('Programado', 'En Proceso', 'Finalizado', 'Cancelado') DEFAULT 'Programado',
+    proximo_control DATE,
+    observaciones TEXT,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (mascota_id) REFERENCES mascotas(id) ON DELETE CASCADE,
+    FOREIGN KEY (veterinario_id) REFERENCES veterinarios(id) ON DELETE CASCADE
+);
+
+-- 4. TABLA PARA ITEMS_FACTURA (Ejercicio 5 - si no existe)
+CREATE TABLE IF NOT EXISTS items_factura (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    factura_id INT NOT NULL,
+    producto_id INT,
+    descripcion VARCHAR(200) NOT NULL,
+    tipo_item ENUM('Producto', 'Servicio') DEFAULT 'Producto',
+    cantidad INT NOT NULL,
+    precio_unitario DECIMAL(10,2) NOT NULL,
+    subtotal DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (factura_id) REFERENCES facturas(id) ON DELETE CASCADE,
+    FOREIGN KEY (producto_id) REFERENCES inventario(id) ON DELETE SET NULL
+);
+
+
+
+
+
+-- =========== DATOS INICIALES ===========
+
+-- Especies
+
+INSERT INTO especies (nombre, descripcion) VALUES
+('Perro', 'Canis lupus familiaris'),
+('Gato', 'Felis catus'),
+('Ave', 'Aves domésticas'),
+('Roedor', 'Pequeños mamíferos roedores'),
+('Reptil', 'Reptiles domésticos'),
+('Conejo', 'Oryctolagus cuniculus');
+
+
+
+-- Razas (ejemplos básicos)
+
+INSERT INTO razas (especie_id, nombre, caracteristicas) VALUES
+(1, 'Labrador Retriever', 'Tamaño grande, amigable, energético'),
+(1, 'Golden Retriever', 'Tamaño grande, inteligente, leal'),
+(1, 'Pastor Alemán', 'Tamaño grande, inteligente, protector'),
+(1, 'Bulldog Francés', 'Tamaño pequeño, cariñoso, juguetón'),
+(1, 'Chihuahua', 'Tamaño muy pequeño, alerta, valiente'),
+(1, 'Poodle', 'Inteligente, hipoalergénico'),
+(1, 'Mestizo', 'Cruza de razas'),
+(2, 'Persa', 'Pelo largo, tranquilo'),
+(2, 'Siamés', 'Vocal, social, activo'),
+(2, 'Maine Coon', 'Grande, peludo, amigable'),
+(2, 'Bengalí', 'Activo, manchas de leopardo'),
+(2, 'Mestizo', 'Cruza de razas'),
+(3, 'Canario', 'Pequeño, cantante'),
+(3, 'Periquito', 'Pequeño, social'),
+(3, 'Loro', 'Inteligente, longevo'),
+(4, 'Hámster Sirio', 'Pequeño, nocturno'),
+(4, 'Cobayo', 'Mediano, social'),
+(5, 'Iguana Verde', 'Herbívoro, grande'),
+(5, 'Tortuga', 'Lenta, longeva'),
+(6, 'Conejo Enano', 'Pequeño, dócil'),
+(6, 'Conejo Gigante', 'Grande, tranquilo');
+
+-- Tipos de productos
+
+INSERT INTO producto_tipos (nombre, descripcion) VALUES
+('Medicamento', 'Fármacos y medicinas veterinarias'),
+('Vacuna', 'Vacunas y biológicos'),
+('Insumo Médico', 'Material médico y quirúrgico'),
+('Alimento', 'Alimento para mascotas'),
+('Accesorio', 'Accesorios y productos de cuidado');
+
+-- Tipos de eventos médicos
+
+INSERT INTO evento_tipos (nombre, descripcion) VALUES
+('Vacunación', 'Aplicación de vacunas'),
+('Consulta General', 'Consulta veterinaria general'),
+('Cirugía', 'Procedimiento quirúrgico'),
+('Desparasitación', 'Tratamiento antiparasitario'),
+('Control de Peso', 'Seguimiento de peso'),
+('Examen de Sangre', 'Análisis de laboratorio'),
+('Radiografía', 'Estudio de imagen'),
+('Emergencia', 'Atención de emergencia'),
+('Limpieza Dental', 'Profilaxis dental');
+
+-- Estados de citas
+
+INSERT INTO cita_estados (nombre, descripcion) VALUES
+('Programada', 'Cita agendada pendiente'),
+('Confirmada', 'Cita confirmada por el cliente'),
+('En Proceso', 'Mascota siendo atendida'),
+('Finalizada', 'Cita completada'),
+('Cancelada', 'Cita cancelada'),
+('No Asistió', 'Cliente no se presentó');
+
+-- =========== VETERINARIOS DE PRUEBA ===========
+INSERT INTO veterinarios (nombre_completo, documento_identidad, licencia_profesional, especialidad, telefono, email, fecha_contratacion) VALUES
+('Dra. María Rodríguez', '12345678', 'VET-001', 'Cirugía', '3001112233', 'maria.rodriguez@happyfeet.com', '2020-03-15'),
+('Dr. Carlos López', '87654321', 'VET-002', 'Dermatología', '3002223344', 'carlos.lopez@happyfeet.com', '2021-06-20'),
+('Dra. Ana García', '11223344', 'VET-003', 'Cardiología', '3003334455', 'ana.garcia@happyfeet.com', '2019-11-10'),
+('Dr. Pedro Martínez', '44332211', 'VET-004', 'General', '3004445566', 'pedro.martinez@happyfeet.com', '2022-01-30');
+
+-- =========== DUEÑOS DE PRUEBA ===========
+INSERT INTO duenos (nombre_completo, documento_identidad, direccion, telefono, email, contacto_emergencia) VALUES
+('Juan Pérez', '10000001', 'Calle 123 #45-67', '3015556677', 'juan.perez@email.com', 'María Pérez - 3016667788'),
+('Laura González', '10000002', 'Av. Siempre Viva 742', '3024445566', 'laura.gonzalez@email.com', 'Carlos González - 3025556677'),
+('Roberto Silva', '10000003', 'Carrera 50 #80-10', '3033334455', 'roberto.silva@email.com', 'Ana Silva - 3034445566'),
+('Mónica Ramírez', '10000004', 'Diagonal 25 #40-15', '3042223344', 'monica.ramirez@email.com', 'Luis Ramírez - 3043334455'),
+('David Fernández', '10000005', 'Transversal 8 #90-20', '3051112233', 'david.fernandez@email.com', 'Sofia Fernández - 3052223344');
+
+-- =========== MASCOTAS DE PRUEBA ===========
+INSERT INTO mascotas (dueno_id, nombre, raza_id, fecha_nacimiento, sexo, peso_actual, microchip, alergias, condiciones_preexistentes) VALUES
+(1, 'Firulais', 1, '2020-05-15', 'Macho', 25.5, 'CHIP001', 'Ninguna', 'Ninguna'),
+(1, 'Luna', 8, '2021-02-20', 'Hembra', 4.2, 'CHIP002', 'Polen', 'Asma leve'),
+(2, 'Max', 2, '2019-08-10', 'Macho', 30.0, 'CHIP003', 'Ninguna', 'Problemas articulares'),
+(2, 'Bobby', 7, '2022-01-05', 'Macho', 12.8, NULL, 'Ninguna', 'Ninguna'),
+(3, 'Mimi', 9, '2020-11-30', 'Hembra', 3.8, 'CHIP004', 'Ciertos alimentos', 'Ninguna'),
+(4, 'Rex', 3, '2018-12-25', 'Macho', 35.2, 'CHIP005', 'Ninguna', 'Displasia de cadera'),
+(4, 'Nala', 10, '2021-07-14', 'Hembra', 5.1, NULL, 'Ninguna', 'Ninguna'),
+(5, 'Thor', 1, '2022-03-08', 'Macho', 28.7, 'CHIP006', 'Picaduras de insectos', 'Ninguna');
+
+-- =========== CITAS DE PRUEBA ===========
+INSERT INTO citas (mascota_id, veterinario_id, fecha_hora, motivo, estado_id, observaciones) VALUES
+(1, 1, '2024-11-05 09:00:00', 'Consulta de rutina y vacunación anual', 1, 'Traer cartilla de vacunación'),
+(2, 2, '2024-11-05 10:30:00', 'Problemas de piel y caída de pelo', 1, 'Traer muestras de shampoo usado'),
+(3, 3, '2024-11-05 14:00:00', 'Control cardíaco anual', 2, 'Ayuno de 12 horas antes'),
+(4, 4, '2024-11-06 11:00:00', 'Esterilización', 1, 'Ayuno completo desde la noche anterior'),
+(5, 1, '2024-11-06 15:30:00', 'Revisión dental y limpieza', 1, 'Ninguna'),
+(6, 2, '2024-11-07 08:30:00', 'Seguimiento displasia de cadera', 1, 'Traer radiografías anteriores'),
+(1, 3, '2024-10-25 10:00:00', 'Vacunación antirrábica', 4, 'Vacuna aplicada correctamente'),
+(3, 4, '2024-10-20 16:00:00', 'Desparasitación', 4, 'Desparasitante aplicado');
+
+-- =========== PRODUCTOS DE INVENTARIO ===========
+INSERT INTO inventario (nombre_producto, producto_tipo_id, descripcion, fabricante, cantidad_stock, stock_minimo, precio_venta, fecha_vencimiento, requiere_receta) VALUES
+('Vacuna Antirrábica', 2, 'Vacuna para rabia canina y felina', 'Zoetis', 50, 10, 45.00, '2025-06-30', FALSE),
+('Vacuna Triple Felina', 2, 'Vacuna para panleucopenia, calicivirus y rinotraqueitis', 'Merial', 35, 8, 55.00, '2025-05-15', FALSE),
+('Antipulgas Spot-on', 1, 'Tratamiento antipulgas y garrapatas', 'Bayer', 100, 20, 35.00, '2026-01-31', FALSE),
+('Desparasitante Interno', 1, 'Tabletas para parásitos intestinales', 'Elanco', 80, 15, 25.00, '2025-12-31', FALSE),
+('Shampoo Medicado', 3, 'Shampoo para problemas dermatológicos', 'Virbac', 40, 5, 42.00, '2025-08-20', FALSE),
+('Analgésico Inyectable', 1, 'Carprofeno 50mg/ml', 'Pfizer', 30, 10, 85.00, '2024-12-31', TRUE),
+('Alimento Premium Adulto', 4, 'Alimento para perros adultos razas grandes', 'Royal Canin', 25, 5, 120.00, '2025-03-15', FALSE),
+('Collar Antipulgas', 5, 'Collar de 8 meses de duración', 'Seresto', 60, 12, 95.00, '2026-06-30', FALSE);
+
+-- =========== CLUB DE MASCOTAS FRECUENTES ===========
+INSERT INTO club_mascotas (dueno_id, puntos_acumulados, puntos_canjeados, puntos_disponibles, nivel, fecha_inscripcion) VALUES
+(1, 350, 100, 250, 'Plata', '2023-05-10'),
+(2, 150, 0, 150, 'Bronce', '2024-01-15'),
+(3, 600, 200, 400, 'Oro', '2022-11-20'),
+(4, 800, 300, 500, 'Platino', '2022-03-05');
+
+-- =========== BENEFICIOS DEL CLUB ===========
+INSERT INTO beneficios_club (nombre, descripcion, nivel_requerido, puntos_necesarios, tipo_beneficio, valor_beneficio) VALUES
+('Descuento 10%', '10% de descuento en cualquier servicio', 'Bronce', 100, 'Descuento', 10.00),
+('Baño Gratis', 'Servicio de baño y grooming gratuito', 'Plata', 200, 'Servicio Gratis', 50.00),
+('Consulta Gratuita', 'Consulta general gratuita', 'Oro', 300, 'Servicio Gratis', 80.00),
+('Vacuna Gratis', 'Una vacuna anual gratuita', 'Platino', 500, 'Servicio Gratis', 120.00);
+
+-- =========== FACTURAS DE PRUEBA ===========
+INSERT INTO facturas (dueno_id, numero_factura, fecha_emision, subtotal, impuesto, descuento, total, metodo_pago, estado) VALUES
+(1, 'FACT-2024-001', '2024-10-25 11:30:00', 145.00, 27.55, 0.00, 172.55, 'Tarjeta', 'Pagada'),
+(2, 'FACT-2024-002', '2024-10-26 09:15:00', 85.00, 16.15, 10.00, 91.15, 'Efectivo', 'Pagada'),
+(3, 'FACT-2024-003', '2024-10-27 16:45:00', 220.00, 41.80, 0.00, 261.80, 'Transferencia', 'Pendiente');
+
+-- =========== ITEMS DE FACTURA ===========
+INSERT INTO items_factura (factura_id, tipo_item, servicio_descripcion, cantidad, precio_unitario, subtotal) VALUES
+(1, 'Servicio', 'Consulta general + vacuna antirrábica', 1, 145.00, 145.00),
+(2, 'Servicio', 'Consulta dermatológica', 1, 85.00, 85.00),
+(3, 'Producto', 'Alimento Premium + Antipulgas', 1, 220.00, 220.00);
+
+COMMIT;
+
+SELECT '✅ DATOS DE PRUEBA INSERTADOS CORRECTAMENTE' as Resultado;
