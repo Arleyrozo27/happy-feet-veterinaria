@@ -13,17 +13,17 @@ import util.LoggerManager;
 
 public class ArchivoObserver implements NotificacionObserver {
     @Override
-    public void notificarProximoControl(int mascotaId, int dueñoId, LocalDate fechaControl) {
+    public void notificarStockMinimo(int producto_tipo_id, String nombre_producto, LocalDate fecha_vencimiento) {
         try {
-            FileWriter writer = new FileWriter("agenda_controles.log", true);
+            FileWriter writer = new FileWriter("stockminimo.log", true);
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            String registro = timestamp + " | TAREA_PENDIENTE | Mascota_ID=" + mascotaId + 
-                            " | Dueño_ID=" + dueñoId + " | Fecha_Control_Sugerida=" + fechaControl + "\n";
+            String registro = timestamp + " | TAREA_PENDIENTE | Producto_ID=" + producto_tipo_id + 
+                            " | Nombre =" + nombre_producto + " | Reabastecer antes de =" + fecha_vencimiento + "\n";
             writer.write(registro);
             writer.close();
-            System.out.println("✓ Tarea registrada en agenda_controles.log");
+            System.out.println("Tarea registrada en stockminimo.log");
         } catch (Exception e) {
-            LoggerManager.logError("Error al escribir en agenda_controles.log", e);
+            LoggerManager.logError("Error al escribir en stoclminimo.log", e);
         }
     }
 }

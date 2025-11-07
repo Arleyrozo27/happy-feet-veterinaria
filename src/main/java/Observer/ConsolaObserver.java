@@ -9,12 +9,12 @@ import java.time.LocalDate;
 
 public class ConsolaObserver implements NotificacionObserver {
     @Override
-    public void notificarProximoControl(int mascotaId, int dueñoId, LocalDate fechaControl) {
-        System.out.println("\n*** RECORDATORIO DE CONTROL PRÓXIMO ***");
-        System.out.println("Mascota ID: " + mascotaId);
-        System.out.println("Dueño ID: " + dueñoId);
-        System.out.println("Fecha Sugerida de Control: " + fechaControl);
-        System.out.println("Tarea: Contactar al dueño para agendar.");
+    public void notificarStockMinimo(int producto_tipo_id,String nombre_producto, LocalDate fecha_vencimiento) {
+        System.out.println("\n*** ALERTA DE STOCK BAJO ***");
+        System.out.println("Producto ID: " + producto_tipo_id);
+        System.out.println("Nombre: " + nombre_producto);
+        System.out.println("Fecha antes de vencer: " + fecha_vencimiento);
+        System.out.println("Tarea: Contactar para obtener mas producto.");
         System.out.println("****************************************");
     }
 }

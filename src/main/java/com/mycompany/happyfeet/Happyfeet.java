@@ -1,6 +1,7 @@
 package com.mycompany.happyfeet;
 import Observer.ArchivoObserver;
 import Observer.ConsolaObserver;
+import Observer.NotificacionObserver;
 import services.DueñoService;
 import services.MascotaService;
 import util.LoggerManager;
@@ -63,18 +64,6 @@ public class Happyfeet {
                 case 5:
                     gestionarInventario();
                     break;
-                case 6:
-                    historialPesoService.consultarHistorialPeso();
-                    break;
-                case 7:
-                    contratoService.generarContratoAdopcion();
-                    break;
-                case 8:
-                    reporteProductosService.generarReporteProductosVendidos();
-                    break;
-                case 9:
-                    gestionarProcedimientos();
-                    break;
                 case 0:
                     continuar = false;
                     System.out.println("Gracias por usar Happy Feet!");
@@ -106,10 +95,6 @@ public class Happyfeet {
         System.out.println("3.Gestion de Citas");
         System.out.println("4.Facturación");
         System.out.println("5.Control de Inventario");
-        System.out.println("6.Historial de Peso");           // NUEVO
-        System.out.println("7.Contrato Adopción");
-        System.out.println("8.Reporte Productos Vendidos");  // NUEVO
-        System.out.println("9.Probar Notificaciones"); 
         System.out.println("0.Salir");
         System.out.print("Selecciona una opcion: ");
     }
@@ -193,8 +178,8 @@ public class Happyfeet {
             System.out.println("2.Listar todas las mascotas");
             System.out.println("3.Listar mascotas por dueno");
             System.out.println("4.Buscar mascota por nombre");
-            System.out.println("5. Ver razas disponibles");
-            System.out.println("6.Volver al menu principal");
+            System.out.println("5.Ver razas disponibles");
+            System.out.println("0.Volver al menu principal");
             System.out.print("Selecciona: ");
             
             int opcion = leerOpcion();
@@ -214,7 +199,7 @@ public class Happyfeet {
                 case 5:
                     mascotaService.mostrarRazasDisponibles();
                     break;
-                case 6:
+                case 0:
                     volver = true;
                     break;
                 default:
@@ -304,11 +289,11 @@ public class Happyfeet {
         while (!volver) {
             System.out.println("\n1.Registrar producto");
             System.out.println("2.Listar inventario completo");
-            System.out.println("3.Buscar producto");
-            System.out.println("4.Alertas de stock bajo");
+            System.out.println("3.Buscar producto"); 
+            System.out.println("4.Descontar stock");
             System.out.println("5.Productos proximos a vencer");
-            System.out.println("6.Descontar stock");
-            System.out.println("7.Volver al menu principal");
+            System.out.println("6.Probar Notificaciones");
+            System.out.println("0.Volver al menu principal");
             System.out.print("Selecciona: ");
             
             int opcion = leerOpcion();
@@ -323,15 +308,15 @@ public class Happyfeet {
                     productoService.buscarProducto();
                     break;
                 case 4:
-                    productoService.mostrarAlertasStockBajo();
+                    productoService.descontarStock();
                     break;
                 case 5:
                     productoService.mostrarProductosProximosAVencer();
                     break;
                 case 6:
-                    productoService.descontarStock();
+                    gestionarProcedimientos();
                     break;
-                case 7:
+                case 0:
                     volver = true;
                     break;
                 default:
