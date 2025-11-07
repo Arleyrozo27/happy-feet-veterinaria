@@ -26,3 +26,11 @@
 [INFO] Fri Oct 31 14:19:00 COT 2025 - Sistema Happy Feet iniciado
 [INFO] Fri Oct 31 14:20:45 COT 2025 - Nuevo producto registrado: Paracetamol - ID: 1
 [INFO] Fri Oct 31 14:21:25 COT 2025 - Stock descontado - Producto: Paracetamol - Cantidad: 50
+[INFO] Tue Nov 04 14:35:15 COT 2025 - Sistema Happy Feet iniciado
+[INFO] Tue Nov 04 14:38:00 COT 2025 - Nueva cita agendada - Mascota ID: 3 - Fecha: 2025-12-27T14:00
+[INFO] Tue Nov 04 14:39:13 COT 2025 - Estado de cita cambiado - Cita ID: 1 - Nuevo estado: 2
+[INFO] Tue Nov 04 14:39:31 COT 2025 - Estado de cita cambiado - Cita ID: 1 - Nuevo estado: 4
+[INFO] Tue Nov 04 14:40:59 COT 2025 - Factura generada - Número: FACT-1762285201429 - Total: 23800.0
+[INFO] Tue Nov 04 14:41:10 COT 2025 - Sistema Happy Feet finalizado
+[INFO] Fri Nov 07 10:49:19 COT 2025 - Sistema Happy Feet iniciado
+[INFO] Fri Nov 07 10:50:16 COT 2025 - Reporte de productos generado - Período: 2025-10-20 a 2025-12-31

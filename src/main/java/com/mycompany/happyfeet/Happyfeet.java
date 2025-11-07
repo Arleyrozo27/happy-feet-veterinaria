@@ -1,11 +1,18 @@
 package com.mycompany.happyfeet;
+import Observer.ArchivoObserver;
+import Observer.ConsolaObserver;
 import services.DueñoService;
 import services.MascotaService;
 import util.LoggerManager;
 import java.util.Scanner;
 import services.CitaService;
+import services.ContratoAdopcionService;
+import services.DisponibilidadVeterinarioService;
 import services.FacturaService;
+import services.HistorialPesoService;
+import services.ProcedimientoService;
 import services.ProductoService;
+import services.ReporteProductosService;
 
 /**
  *
@@ -17,12 +24,22 @@ public class Happyfeet {
     private static MascotaService mascotaService = new MascotaService();
     private static ProductoService productoService = new ProductoService();
     private static CitaService citaService = new CitaService();
-    private static Scanner scanner = new Scanner(System.in);
     private static FacturaService facturaService = new FacturaService();
+    private static HistorialPesoService historialPesoService = new HistorialPesoService();
+    private static DisponibilidadVeterinarioService disponibilidadService = new DisponibilidadVeterinarioService();
+    private static ContratoAdopcionService contratoService = new ContratoAdopcionService();
+    private static ProcedimientoService procedimientoService = new ProcedimientoService();
+    private static ReporteProductosService reporteProductosService = new ReporteProductosService();
     
+    private static Scanner scanner = new Scanner(System.in);
+
+
+
     public static void main(String[] args) {
         LoggerManager.logInfo("Sistema Happy Feet iniciado");
         System.out.println("- BIENVENIDO AL SISTEMA HAPPY FEET VETERINARIA -");
+        
+        configurarObservers();
         
         boolean continuar = true;
         
@@ -47,6 +64,18 @@ public class Happyfeet {
                     gestionarInventario();
                     break;
                 case 6:
+                    historialPesoService.consultarHistorialPeso();
+                    break;
+                case 7:
+                    contratoService.generarContratoAdopcion();
+                    break;
+                case 8:
+                    reporteProductosService.generarReporteProductosVendidos();
+                    break;
+                case 9:
+                    gestionarProcedimientos();
+                    break;
+                case 0:
                     continuar = false;
                     System.out.println("Gracias por usar Happy Feet!");
                     break;
@@ -59,6 +88,17 @@ public class Happyfeet {
         LoggerManager.logInfo("Sistema Happy Feet finalizado");
     }
     
+    private static void configurarObservers() {
+        System.out.println("Configurando sistema de notificaciones...");
+        ConsolaObserver consolaObserver = new ConsolaObserver();
+        ArchivoObserver archivoObserver = new ArchivoObserver();
+        
+        procedimientoService.registrarObservador(consolaObserver);
+        procedimientoService.registrarObservador(archivoObserver);
+        
+        System.out.println("Sistema de notificaciones configurado correctamente");
+    }
+    
     private static void mostrarMenuPrincipal() {
         System.out.println("\n=== MENU PRINCIPAL ===");
         System.out.println("1.Gestion de Duenos");
@@ -66,7 +106,11 @@ public class Happyfeet {
         System.out.println("3.Gestion de Citas");
         System.out.println("4.Facturación");
         System.out.println("5.Control de Inventario");
-        System.out.println("6.Salir");
+        System.out.println("6.Historial de Peso");           // NUEVO
+        System.out.println("7.Contrato Adopción");
+        System.out.println("8.Reporte Productos Vendidos");  // NUEVO
+        System.out.println("9.Probar Notificaciones"); 
+        System.out.println("0.Salir");
         System.out.print("Selecciona una opcion: ");
     }
     
@@ -75,6 +119,37 @@ public class Happyfeet {
             return Integer.parseInt(scanner.nextLine());
         } catch (NumberFormatException e) {
             return -1;
+        }
+    }
+    
+    private static void gestionarProcedimientos() {
+        System.out.println("\n--- GESTIÓN DE PROCEDIMIENTOS ---");
+        
+        boolean volver = false;
+        while (!volver) {
+            System.out.println("\n1. Actualizar estado de procedimiento");
+            System.out.println("2. Probar notificaciones manualmente");
+            System.out.println("3. Volver al menú principal");
+            System.out.print("Selecciona: ");
+            
+            int opcion = leerOpcion();
+            switch (opcion) {
+                case 1:
+                    System.out.print("ID del procedimiento: ");
+                    int procId = Integer.parseInt(scanner.nextLine());
+                    System.out.print("Nuevo estado (Programado/En Proceso/Finalizado/Cancelado): ");
+                    String estado = scanner.nextLine();
+                    procedimientoService.actualizarEstadoProcedimiento(procId, estado);
+                    break;
+                case 2:
+                    procedimientoService.probarNotificacionManual();
+                    break;
+                case 3:
+                    volver = true;
+                    break;
+                default:
+                    System.out.println("Opción inválida");
+            }
         }
     }
     
@@ -204,8 +279,8 @@ public class Happyfeet {
 
         boolean volver = false;
         while (!volver) {
-            System.out.println("\n1. 🧾 Generar factura rápida");
-            System.out.println("2. ↩️ Volver al menú principal");
+            System.out.println("\n1.Generar factura rápida");
+            System.out.println("2.Volver al menú principal");
             System.out.print("Selecciona: ");
 
             int opcion = leerOpcion();
@@ -217,7 +292,7 @@ public class Happyfeet {
                     volver = true;
                     break;
                 default:
-                    System.out.println("❌ Opción inválida");
+                    System.out.println("Opción inválida");
             }
         }
     }
